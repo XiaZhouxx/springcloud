@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: xz-zuul
+server:
+  port: 20001
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8888/eureka/,http://localhost:9999/eureka/
+zuul:
+  ignored-services: eureka-server,xz-consumer # 去除默认的服务地址映射 http://ip:zuul-port/服务名/服务接口
+  routes:
+    consumer: # 自定义映射 这里随意
+      serviceId: xz-consumer # 对应的微服务
+      path: /consumer/** # 自定义路由路径 当访问 http://ip:zuul-port/consumer/xxx接口 会路由到对应微服务的 xxx接口
+  PreFilter:
+    # filterType
+    pre:
+      # 是否禁用
+      disable: true

@@ -1,0 +1,10 @@
+spring:
+  cloud:
+    config:
+      uri: http://localhost:8080/
+      profile: dev
+  application:
+    name: consumer
+  # 最终获取的配置文件为 consumer-dev
+server:
+  port: 8081

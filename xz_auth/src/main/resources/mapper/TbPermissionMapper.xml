@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xz.oauth.server.mapper.TbPermissionMapper">
+  <resultMap id="BaseResultMap" type="com.xz.oauth.server.domain.TbPermission">
+    <!--@mbg.generated generated on Fri Feb 14 14:15:01 CST 2020.-->
+    <!--@Table tb_permission-->
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="parent_id" jdbcType="BIGINT" property="parentId" />
+    <result column="name" jdbcType="VARCHAR" property="name" />
+    <result column="enname" jdbcType="VARCHAR" property="enname" />
+    <result column="url" jdbcType="VARCHAR" property="url" />
+    <result column="description" jdbcType="VARCHAR" property="description" />
+    <result column="created" jdbcType="TIMESTAMP" property="created" />
+    <result column="updated" jdbcType="TIMESTAMP" property="updated" />
+
+    <association property="name" javaType="java.lang.String">
+
+    </association>
+
+    <collection property="url" >
+
+    </collection>
+  </resultMap>
+  <sql id="Base_Column_List">
+    <!--@mbg.generated generated on Fri Feb 14 14:15:01 CST 2020.-->
+    id, parent_id, `name`, enname, url, description, created, updated
+  </sql>
+  <select id="findByUserId" resultType="tbPermission" parameterType="long">
+    SELECT
+      p.*
+    FROM
+      tb_user u
+      LEFT JOIN tb_user_role ur
+        ON u.id = ur.`user_id`
+      LEFT JOIN tb_role_permission rp
+        ON ur.`role_id` = rp.`role_id`
+      LEFT JOIN tb_permission p
+        ON rp.`permission_id` = p.`id`
+      where u.id = #{userId}
+  </select>
+
+</mapper>

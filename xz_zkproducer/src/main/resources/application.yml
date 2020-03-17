@@ -1,0 +1,19 @@
+spring:
+  cloud:
+    zookeeper:
+      connect-string: 47.107.246.54:2181
+      enabled: true
+      discovery:
+        instance-host: localhost
+
+  application:
+    name: spring.cloud.zookeeper.discovery
+management:
+  server:
+    port: 8082
+  endpoints:
+    web:
+      exposure:
+        include: ["*"]
+server:
+  port: 0

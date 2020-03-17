@@ -1,0 +1,12 @@
+server:
+  port: 9999
+eureka:
+  instance:
+    hostname: 127.0.0.1
+  client:
+    service-url: # 配置注册中心位置 客户端需要从这个地址拉取 并且集群时服务端需要互相注册
+      defaultZone: http://localhost:8888/eureka/
+    # register-with-eureka: false
+spring:
+  application:
+    name: eureka-server

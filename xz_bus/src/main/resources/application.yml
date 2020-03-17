@@ -1,0 +1,16 @@
+spring:
+  cloud:
+    bus:
+      trace:
+        enabled: true
+  application:
+    name: xz-bus
+  rabbitmq:
+    host: 47.107.246.54
+server:
+  port: 8989
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "* "

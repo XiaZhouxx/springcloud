@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: xz-consumer
+  datasource:
+    username: root
+    password: 118756
+    url: jdbc:mysql///studb
+    driver-class-name: com.mysql.jdbc.Driver
+server:
+  port: 8989
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8888/eureka/,http://localhost:9999/eureka/
+feign:
+  hystrix:
+    enabled: true
+logging:
+  level:
+    com.xz.springcloud.feign.ProducerFeign: debug
+ribbon:
+  # 开启Ribbon的饥饿加载，因为默认是懒加载的 所以可能导致第一次请求时会超时异常 client指定加载的客户端/服务名
+  eager-load:
+    enabled: true
+    clients: xz-consumer

@@ -1,0 +1,11 @@
+server:
+  port: 8888
+eureka:
+  instance:
+    hostname: 127.0.0.1
+  client:
+    service-url: # 配置集群中其他Eureka Server节点地址 单机就不需要设置
+      defaultZone: http://localhost:9999/eureka/
+spring:
+  application:
+    name: eureka-server
