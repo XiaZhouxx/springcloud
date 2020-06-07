@@ -46,9 +46,11 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .withUser("user").password(passwordEncoder().encode("123456")).roles("USER");*/
         // 从数据库中查询用户 以及校验\
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-        // 设置不隐藏找不到用户异常
+        // 设置不隐藏 用户异常
         provider.setHideUserNotFoundExceptions(false);
+        // 用户认证service
         provider.setUserDetailsService(userDetailsService());
+        // 密码加密
         provider.setPasswordEncoder(passwordEncoder());
         auth.authenticationProvider(provider);
         // .and().authenticationProvider()
