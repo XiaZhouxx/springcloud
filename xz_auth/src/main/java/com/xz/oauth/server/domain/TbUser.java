@@ -16,9 +16,6 @@ public class TbUser implements Serializable {
     @Column(name = "id")
     @GeneratedValue(generator = "JDBC")
     private Long id;
-
-
-
     /**
      * 用户名
      */

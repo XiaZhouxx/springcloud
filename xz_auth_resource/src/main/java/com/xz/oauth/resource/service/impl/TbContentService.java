@@ -16,4 +16,9 @@ public class TbContentService{
     public List<TbContent> findAll() {
         return tbContentMapper.selectAll();
     }
+
+    public TbContent findById(Long id) {
+        return tbContentMapper.selectByPrimaryKey(id);
+    }
+
 }

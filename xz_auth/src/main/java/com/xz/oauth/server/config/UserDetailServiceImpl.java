@@ -8,11 +8,11 @@ import org.assertj.core.util.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 
@@ -41,22 +41,35 @@ public class UserDetailServiceImpl implements UserDetailsService {
         // 用户用于认证
         TbUser user = tbUserService.getByUserName(s);
         List<GrantedAuthority> grantedAuthorities = Lists.newArrayList();
-
+        checkUser(user);
         if(user != null) {
             // 获取用户的权限 用于授权
             List<TbPermission> permissions = tbPermissionService.findByUserId(user.getId());
-            permissions.forEach(p -> {
-                // 用于系统标识的权限名 也可以直接值只查询这个字段 返回一个 String []
+            if(!CollectionUtils.isEmpty(permissions)) {
+                permissions.forEach(p -> {
+                    // 用于系统标识的权限名 也可以直接值只查询这个字段 返回一个 String []
                 /*List<String> permissions = tbPermissionService.findByUserId(user.getId());
                 String[] permiss = new String[permissions.size()];
                 permissions.toArray(permiss);
                 User.withUsername("").password("").authorities(permiss);*/
-                GrantedAuthority g = new SimpleGrantedAuthority(p.getEnname());
-                grantedAuthorities.add(g);
-            });
-            return new User(user.getUsername(), user.getPassword(), grantedAuthorities);
+                    // enname = 权限名 访问某个资源拥有某个权限才能访问 获取这个用户的所有权限 + jwt中
+                    GrantedAuthority g = new SimpleGrantedAuthority(p.getEnname());
+                    grantedAuthorities.add(g);
+                });
+            }
+            return new LoginUser(user.getId(), user.getUsername(), user.getPassword(), grantedAuthorities);
         }
-        // 用户名不对的情况
         return null;
+    }
+
+    /**
+     * 封装校验用户逻辑
+     * @author xz
+     * @date 2020/6/5
+     */
+    private void checkUser(TbUser user) {
+        if (user == null) {
+            throw new UsernameNotFoundException("用户名有误！");
+        }
     }
 }

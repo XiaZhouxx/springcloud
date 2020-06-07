@@ -24,12 +24,15 @@ mybatis:
   type-aliases-package: com.xz.oauth.resource.domain
 security:
   oauth2:
-#    client: # 远程认证服务器时所需
-#      client-id: client   # 必须和认证服务器中的匹配 否则等于并不是所属业务发起的请求
-#      client-secret: secret
-#      access-token-uri: http://localhost:8080/oauth/token # 认证服务器获取token 地址
-#      user-authorization-uri: http://localhost:8080/oauth/authorize
+    client: # 远程认证服务器时所需
+      client-id: client   # 必须和认证服务器中的匹配 否则等于并不是所属业务发起的请求
+      client-secret: 123456
+      access-token-uri: http://localhost:8080/oauth/token # 认证服务器获取token 地址
+      user-authorization-uri: http://localhost:8080/oauth/authorize
+      grant-type: password
     resource: # 这个地址需要认证服务器授权(配置开放)
-      # token-info-uri: http://localhost:8080/oauth/check_token
-      jwt: # 密钥 Cannot convert access token to JSON
-        key-value: test
+      token-info-uri: http://localhost:8080/oauth/check_token
+      #jwt: # 密钥 Cannot convert access token to JSON
+        #key-value: test # 知道秘钥的情况下直接写死
+        # key-uri: 获取秘钥的url ,例如可以通过认证服务器提供一个接口返回.
+      # 获取用户信息的url

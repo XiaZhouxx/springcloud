@@ -1,5 +1,6 @@
 package com.xz.oauth.server.config;
 
+import com.xz.oauth.server.exception.GlobalOauth2ExceptionTranslator;
 import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -10,110 +11,95 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.common.DefaultOAuth2AccessToken;
-import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
 import org.springframework.security.oauth2.provider.ClientDetailsService;
-import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.client.JdbcClientDetailsService;
-import org.springframework.security.oauth2.provider.token.TokenEnhancerChain;
+import org.springframework.security.oauth2.provider.token.TokenEnhancer;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
-import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 
-import java.util.Arrays;
+import java.util.HashMap;
 
 /**
  * @author xz
- * @ClassName OAuth2ServerConfig
  * @Description OAuth 认证服务器配置
  * @date 2020/2/13 0013 16:14
  **/
 @Configuration
 @EnableAuthorizationServer
 public class OAuth2ServerConfig extends AuthorizationServerConfigurerAdapter {
+    /** 密码加密编码器 */
     @Autowired
     BCryptPasswordEncoder passwordEncoder;
 
     @Autowired
     UserDetailServiceImpl userDetailService;
+
+    /** token的存储 */
+    @Autowired
+    TokenStore tokenStore;
+
+    /** jwt 转换器 */
+    @Autowired
+    JwtAccessTokenConverter jwtAccessTokenConverter;
+
     /**
      * 密码模式需要添加管理器
      */
     @Autowired
-    private AuthenticationManager authenticationManager;
-
-    /**
-     * JWT秘钥
-     */
-    private final static String SIGNING_KEY = "test";
+    AuthenticationManager authenticationManager;
 
     /**
      * 因为使用的是 hikari 数据源 如果不指定会和Spring自身的冲突
      * @return
      */
     @Bean
-    @Primary // 使用时优先使用该实现
+    @Primary // 注入时优先使用该实现
     @ConfigurationProperties("spring.datasource")
     public HikariDataSource dataSource() {
         return DataSourceBuilder.create().type(HikariDataSource.class).build();
     }
 
-    /**
-     * JWT 令牌转换器
-     * @return
-     */
     @Bean
-    public JwtAccessTokenConverter jwtAccessTokenConverter() {
-        JwtAccessTokenConverter jwt = new JwtAccessTokenConverter(){
-            @Override
-            public OAuth2AccessToken enhance(OAuth2AccessToken accessToken, OAuth2Authentication authentication) {
-                // 自定义附加信息 key - value map
-                //((DefaultOAuth2AccessToken)accessToken).setAdditionalInformation(new HashMap<>());
-                DefaultOAuth2AccessToken enhance = (DefaultOAuth2AccessToken) super.enhance(accessToken, authentication);
-                System.out.println(enhance.getValue());
-                return enhance;
-            }
-        };
-        jwt.setSigningKey(SIGNING_KEY);
-        return jwt;
+    public ClientDetailsService clientDetailsService() {
+
+        JdbcClientDetailsService service = new JdbcClientDetailsService(dataSource());
+        return service;
     }
 
     /**
-     * 配置 token 如何生成 <br/>
-     * 1. 默认 InMemoryTokenStore 基于内存存储 <br/>
-     * 2.     JdbcTokenStore 基于数据库存储 <br/>
-     * 3.     JwtTokenStore 使用 JWT 存储 该方式可以让资源服务器自己校验令牌的有效性
-     * 而不必远程连接认证服务器再进行认证。<br/>
-     * <a href="www.baidu.com">百度一下</a>
-     * @return
+     * 用户授权操作记录 - 授权码模式才用
+     * @author xz
+     * @date 2020/6/4
      */
-    @Bean
-    public TokenStore tokenStore() {
-        return new JwtTokenStore(jwtAccessTokenConverter()){
-            @Override
-            public void storeAccessToken(OAuth2AccessToken token, OAuth2Authentication authentication) {
-                // 自定义令牌存储 例如存入Redis中
-                super.storeAccessToken(token, authentication);
-            }
-        };
-        //return new JdbcTokenStore(dataSource());
-    }
+//    @Bean
+//    public UserApprovalHandler userApprovalHandler() {
+//        ApprovalStoreUserApprovalHandler userApprovalHandler = new ApprovalStoreUserApprovalHandler();
+//        userApprovalHandler.setApprovalStore(approvalStore());
+//        userApprovalHandler.setClientDetailsService(clientDetailsService());
+//        userApprovalHandler.setRequestFactory(new DefaultOAuth2RequestFactory(clientDetailsService()));
+//        return userApprovalHandler;
+//    }
+//
+//
+//    @Bean
+//    public ApprovalStore approvalStore() {
+//        return new JdbcApprovalStore(dataSource());
+//    }
 
     @Override
     public void configure(AuthorizationServerSecurityConfigurer security) throws Exception {
-        security.allowFormAuthenticationForClients()
-                .passwordEncoder(passwordEncoder)
-                .tokenKeyAccess("permitAll()")
-                .checkTokenAccess("isAuthenticated()");
-    }
 
-    @Bean
-    public ClientDetailsService jdbcClientDetails() {
-        return new JdbcClientDetailsService(dataSource());
+        security
+                // 允许表单登录
+                .allowFormAuthenticationForClients()
+                // 密码加密编码器
+                .passwordEncoder(passwordEncoder)
+                .checkTokenAccess("permitAll()");
     }
 
     @Override
@@ -126,8 +112,8 @@ public class OAuth2ServerConfig extends AuthorizationServerConfigurerAdapter {
                 .scopes("app") // 客户端能使用的范围
                 .accessTokenValiditySeconds(60 * 60 * 24 * 30) // 令牌有效期 秒
                 .redirectUris("www.baidu.com"); // 回调授权码 url*/
-        // 基于数据库存储 令牌默认有效 12个小时
-        clients.withClientDetails(jdbcClientDetails());
+        // OAuto2的客户端配置 - 基于 JDBC
+        clients.withClientDetails(clientDetailsService());
     }
 
 
@@ -138,12 +124,34 @@ public class OAuth2ServerConfig extends AuthorizationServerConfigurerAdapter {
      */
     @Override
     public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
-        endpoints.tokenStore(tokenStore());
-        // 设置令牌增强 JWT 转换
-        TokenEnhancerChain enhancer = new TokenEnhancerChain();
-        enhancer.setTokenEnhancers(Arrays.asList(jwtAccessTokenConverter()));
-        endpoints.tokenEnhancer(enhancer)
+        endpoints.tokenStore(tokenStore)
+                // 认证管理器 - 在密码模式必须配置
                 .authenticationManager(authenticationManager)
-                .userDetailsService(userDetailService);
+                // 自定义校验用户service
+                .userDetailsService(userDetailService)
+                // 用户授权记录 授权模式才有
+                //.userApprovalHandler(userApprovalHandler())
+                // 是否重复使用 refresh_token
+                .reuseRefreshTokens(false)
+                .exceptionTranslator(new GlobalOauth2ExceptionTranslator());
+
+        // 在没有使用JWT转换器时，目前测试只能通过增强器设置自定义属性
+        TokenEnhancer enhancer = (accessToken, authentication) -> {
+            DefaultOAuth2AccessToken token1 = (DefaultOAuth2AccessToken) accessToken;
+            LoginUser user = (LoginUser) authentication.getUserAuthentication().getPrincipal();
+            token1.setAdditionalInformation(new HashMap<String, Object>(){{
+                put("user_name", user.getUsername());
+                put("user_id", user.getUserId());
+            }});
+            return token1;
+        };
+        endpoints.tokenEnhancer(enhancer);
+
+        // 设置令牌增强 JWT 转换
+//        TokenEnhancerChain enhancer = new TokenEnhancerChain();
+//        enhancer.setTokenEnhancers(Arrays.asList(jwtAccessTokenConverter));
+//        endpoints.tokenEnhancer(enhancer);
+
     }
+
 }
