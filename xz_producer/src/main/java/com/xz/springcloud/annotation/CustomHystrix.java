@@ -13,5 +13,5 @@ import java.lang.annotation.*;
 @Inherited
 @Documented
 public @interface CustomHystrix {
-    int timeout();
+    long timeout() default 1000;
 }

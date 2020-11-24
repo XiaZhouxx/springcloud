@@ -12,8 +12,7 @@ import java.util.concurrent.*;
 
 /**
  * @author xz
- * @ClassName ControllerHystrixAspect
- * @Description
+ * @Description 自定义实现熔断机制
  * @date 2020/3/16 0016 11:58
  **/
 @Aspect
@@ -25,10 +24,15 @@ public class ControllerHystrixAspect {
      * 切入点为 包含CustomHystrix注解 且是controller包中的类的所有方法
      */
     @Pointcut("@annotation(com.xz.springcloud.annotation.CustomHystrix) && execution(* com.xz.springcloud.controller.*.*(..) )")
-    public void point(){}
+    public void point() {
+    }
 
     @Around("point() && @annotation(hystrix)")
     public Object around(ProceedingJoinPoint joinPoint, CustomHystrix hystrix) throws Throwable {
+        if (hystrix == null) {
+            return joinPoint.proceed();
+        }
+        long timeout = Math.max(hystrix.timeout(), 1000L);
         log.info(hystrix.timeout() + "");
         log.info("begin invoke method");
         ExecutorService service = Executors.newSingleThreadExecutor();
@@ -43,12 +47,13 @@ public class ControllerHystrixAspect {
         });
         Object result;
         try {
-            result = future.get(100, TimeUnit.MILLISECONDS);
-        }catch (TimeoutException e) {
+            // 带超时机制的熔断降级
+            result = future.get(timeout, TimeUnit.MILLISECONDS);
+        } catch (TimeoutException e) {
             future.cancel(true);
-            // 抛出异常让全局异常做熔断
+            // 抛出异常or 对应的降级策略
             throw e;
-        }finally {
+        } finally {
             service.shutdown();
         }
         return result;

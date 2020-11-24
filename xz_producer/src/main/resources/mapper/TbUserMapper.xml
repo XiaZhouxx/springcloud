@@ -21,6 +21,7 @@
     </collection>
   </resultMap>
 
+  <!-- 应该left join -->
   <select id="selectById" parameterType="integer" resultMap="userDetailInfo">
     select
       u.*,
@@ -29,9 +30,23 @@
       o.goods,
       o.id as o_id
     from
+
     tb_user u,tb_user_details d,tb_order o
     where
     u.id = d.user_id and u.id = o.user_id and u.id = #{id}
+  </select>
+
+  <!-- 批量插入/更新 -->
+  <insert id="insertAll" parameterType="list">
+      insert into test.tb_user(name, age) values
+      <foreach collection="list" separator="," item="i">
+        (#{i.name},#{i.age})
+      </foreach>
+      on duplicate key update name = values(name),age = values(age)
+  </insert>
+
+  <select id="findOne" resultType="tbUser">
+    select * from test.tb_user order by id desc limit 1;
   </select>
 
   <sql id="Base_Column_List">

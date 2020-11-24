@@ -58,6 +58,7 @@ public class PreZuulFilter extends ZuulFilter {
      */
     @Override
     public Object run() throws ZuulException {
+        new StringBuilder();
         // 获取当前请求上下文
         RequestContext cx = RequestContext.getCurrentContext();
         // 获取请求

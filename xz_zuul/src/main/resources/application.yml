@@ -12,9 +12,12 @@ zuul:
   routes:
     consumer: # 自定义映射 这里随意
       serviceId: xz-consumer # 对应的微服务
-      path: /consumer/** # 自定义路由路径 当访问 http://ip:zuul-port/consumer/xxx接口 会路由到对应微服务的 xxx接口
-  PreFilter:
+      path: /consumer/** # 自定义的路由拦截路径 当访问 http://ip:zuul-port/consumer/xxx接口 会路由到对应微服务的 xxx接口
+  PreFilter: #filterName
     # filterType
     pre:
       # 是否禁用
       disable: true
+      ##zuul 会过滤敏感head - "Cookie", "Set-Cookie", "Authorization" 所以要取消避免无法获取cookie等
+  sensitive-headers:
+

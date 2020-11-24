@@ -21,6 +21,10 @@ spring:
   redis:
     host: 47.107.246.54
     port: 6379
+  cache: # redis 结合Spring cache @Cacheable等注解方式
+    redis:
+      time-to-live: 10000ms # 全局过期时间
+    type: redis
 eureka:
   client:
     service-url:
@@ -32,15 +36,12 @@ eureka:
     prefer-ip-address: true
     lease-expiration-duration-in-seconds: 10 # 心跳续约间隔时间(默认30秒)
     lease-renewal-interval-in-seconds: 30 # 心跳超时时间 超时后服务端会剔除该服务(默认90秒)
+    instance-id: xz
 mybatis:
   type-aliases-package: com.xz.springcloud.domain
   mapper-locations: mapper/*.xml
 
-management:
-  endpoints:
-    web:
-      exposure:
-        include: ["*"]
-  server:
-    port: 9999
 
+logging:
+  level:
+    com.xz.springcloud.mapper: debug

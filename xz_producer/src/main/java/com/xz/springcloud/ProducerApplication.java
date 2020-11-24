@@ -4,6 +4,7 @@ import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.servlet.ServletComponentScan;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.netflix.hystrix.EnableHystrix;
 import org.springframework.data.redis.repository.configuration.EnableRedisRepositories;
@@ -19,6 +20,7 @@ import org.springframework.data.redis.repository.configuration.EnableRedisReposi
 @SpringBootApplication
 @MapperScan("com.xz.springcloud.mapper")
 @EnableRedisRepositories
+@EnableCaching
 // 扫描@WebFilter 过滤器
 @ServletComponentScan
 public class ProducerApplication {

@@ -5,6 +5,7 @@ import com.netflix.hystrix.contrib.javanica.annotation.HystrixProperty;
 import com.xz.springcloud.annotation.CustomHystrix;
 import com.xz.springcloud.service.ProducerService;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
@@ -22,17 +23,29 @@ public class ProducerController {
 
     private ProducerService service;
 
+    @Value("${server.port}")
+    private String port;
+
     private ExecutorService executorService = Executors.newCachedThreadPool();
 
     @GetMapping("/add")
     // 注解内配置项参考 HystrixCommandProperties 熔断方法注意方法签名(修饰符返回值参数)要相同
     @HystrixCommand(fallbackMethod = "addFallBack", commandProperties = {
-            @HystrixProperty(name = "execution.isolation.thread.timeoutInMilliseconds", value = "200")
+            @HystrixProperty(name = "execution.isolation.thread.timeoutInMilliseconds", value = "10"),
+            @HystrixProperty(name = "execution.isolation.strategy", value = "SEMAPHORE")
     })
-    public String add() {
-        throw new RuntimeException();
+    public String add() throws InterruptedException {
+        System.out.println(Thread.currentThread().getName());
+        Thread.sleep(2000);
+        System.out.println("处理.....");
+        return "success";
     }
 
+    /**
+     * 自定义熔断实现
+     * @return
+     * @throws Exception
+     */
     @GetMapping("/add2")
     public String customHystrix() throws Exception{
         // 低级版本自定义熔断 应该放入AOP中处理解决熔断
@@ -54,6 +67,10 @@ public class ProducerController {
         return result;
     }
 
+    /**
+     * 自定义熔断注解实现
+     * @return
+     */
     @CustomHystrix(timeout = 1000)
     @GetMapping("/add3")
     public String annotationHystrix() {
@@ -66,7 +83,7 @@ public class ProducerController {
     }
 
     public String addFallBack(){
-        return "熔断处理";
+        return port + " 熔断处理";
     }
     @GetMapping("/del")
     public String del(){

@@ -5,6 +5,7 @@ import com.netflix.zuul.context.RequestContext;
 import com.netflix.zuul.exception.ZuulException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cloud.netflix.zuul.filters.support.FilterConstants;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StreamUtils;
 
@@ -14,8 +15,7 @@ import java.nio.charset.Charset;
 
 /**
  * @author xz
- * @ClassName CustomZuulFilter
- * @Description
+ * @Description 前置过滤器
  * @date 2019/6/20 0020 13:19
  **/
 @Component
@@ -24,7 +24,7 @@ public class PostZuulFilter extends ZuulFilter {
 
     @Override
     public String filterType() {
-        return "post";
+        return FilterConstants.POST_TYPE;
     }
 
     @Override

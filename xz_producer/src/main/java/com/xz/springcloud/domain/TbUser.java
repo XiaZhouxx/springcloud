@@ -26,6 +26,13 @@ public class TbUser implements Serializable {
 
     private List<TbOrder> orders;
 
+    public TbUser(String name, Integer age) {
+        this.name = name;
+        this.age = age;
+    }
+
+    public TbUser() {
+    }
 
     private static final long serialVersionUID = 1L;
 }
